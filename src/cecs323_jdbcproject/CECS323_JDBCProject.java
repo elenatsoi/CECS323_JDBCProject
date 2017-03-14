@@ -18,14 +18,25 @@ public class CECS323_JDBCProject {
     static String USER;
     static String PASS;
     static String DBNAME;
-    //This is the specification for the printout that I'm doing:
-    //each % denotes the start of a new field.
-    //The - denotes left justification.
-    //The number indicates how wide to make the field.
-    //The "s" denotes that it's a string.  All of our output in this test are
-    //strings, but that won't always be the case.
-    static final String displayFormat="%-5s%-15s%-15s%-15s\n";
-// JDBC driver name and database URL
+    
+    /*
+    This is the specification for the printout that I'm doing:
+    each % denotes the start of a new field.
+    The - denotes left justification.
+    The number indicates how wide to make the field.
+    The "s" denotes that it's a string.  All of our output in this test are
+    strings, but that won't always be the case.
+    */
+    //Display for Writing Groups (varchar(20), varchar(30), date(year only), varchar(20))
+    static final String groupDisplayFormat="%-25s%-35s%-9s%-25s\n";
+    
+    //Display for Publishers (varchar(30), varchar(20), varchar(10), varchar(30))
+    static final String pubDisplayFormat="%-35s%-25s%-15s%-35s\n";
+    
+    //Display for Books (including Writing Group and Publisher info)
+    //()
+    static final String bookDisplayFormat="%-5s%-15s%-15s%-15s\n";
+    // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
     static String DB_URL = "jdbc:derby://localhost:1527/";
 //            + "testdb;user=";

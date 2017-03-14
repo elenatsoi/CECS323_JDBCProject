@@ -8,7 +8,11 @@
  * Created: Mar 11, 2017
  */
 
-CREATE TABLE WRITINGGROUP(
+drop table WRITINGGROUP;
+drop table PUBLISHER;
+drop table BOOK;
+
+CREATE TABLE WRITINGGROUPS(
     groupName VARCHAR(20) NOT NULL,
     headWriter VARCHAR(30),
     yearFormed DATE,
@@ -16,19 +20,19 @@ CREATE TABLE WRITINGGROUP(
     CONSTRAINT pk_writinggroup PRIMARY KEY (groupName)
 );
 
-CREATE TABLE PUBLISHER(
+CREATE TABLE PUBLISHERS(
     publisherName VARCHAR(30) NOT NULL,
     publisherAddress VARCHAR(20),
     publisherPhone VARCHAR(10),
     publisherEmail VARCHAR(30),
-    CONSTRAINT pk_publisher PRIMARY KEY (PUBLISHERNAME)
+    CONSTRAINT pk_publisher PRIMARY KEY (publisherName)
 );
 
-CREATE TABLE BOOK(
+CREATE TABLE BOOKS(
     groupName VARCHAR(20),
     bookTitle VARCHAR(50) NOT NULL,
     publisherName VARCHAR(30),
-    yearPublisher DATE,
+    yearPublished DATE,
     numberPages INT,
     PRIMARY KEY (groupName, bookTitle),
     CONSTRAINT fk_writinggroup FOREIGN KEY (groupName)
