@@ -45,6 +45,7 @@ public static class methods {
     String updateStr = "UPDATE " + DBNAME + ".BOOKS SET publisherName=" +
             newPublisher + " WHERE publisherName=" + oldPublisher;
     
+    
     public void listGroups();
     
     public void listGroupData(WritingGroup group);
