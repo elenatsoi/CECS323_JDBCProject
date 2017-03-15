@@ -87,7 +87,8 @@ public class CECS323_JDBCProject {
         boolean done = false;
         
         while(!done) {
-            int menu1Choice = getIntInput("\n1) List Writing Groups"
+            
+            System.out.print("\n1) List Writing Groups"
                     + "\n2)  List All Data For A Specific Group"
                     + "\n3)  List All Publishers"
                     + "\n4)  List All Data For A Specific Publisher"
@@ -98,7 +99,9 @@ public class CECS323_JDBCProject {
                     + "\n9)  Remove A Book"
                     + "\n10) Quit\n");
             
-            switch(menu1Choice) {
+            int userInput = CheckInput.checkIntRange(1, 10);
+            
+            switch(userInput) {
                 case 1:
                     //1) List Writing Groups
                     break;
@@ -139,18 +142,18 @@ public class CECS323_JDBCProject {
             
   
             //STEP 5: Extract data from result set
-            System.out.printf(displayFormat, "ID", "First Name", "Last Name", "Phone #");
-            while (rs.next()) {
-                //Retrieve by column name
-                String id = rs.getString("au_id");
-                String phone = rs.getString("phone");
-                String first = rs.getString("au_fname");
-                String last = rs.getString("au_lname");
-
-                //Display values
-                System.out.printf(displayFormat,
-                        dispNull(id), dispNull(first), dispNull(last), dispNull(phone));
-            }
+//            System.out.printf(displayFormat, "ID", "First Name", "Last Name", "Phone #");
+//            while (rs.next()) {
+//                //Retrieve by column name
+//                String id = rs.getString("au_id");
+//                String phone = rs.getString("phone");
+//                String first = rs.getString("au_fname");
+//                String last = rs.getString("au_lname");
+//
+//                //Display values
+//                System.out.printf(displayFormat,
+//                        dispNull(id), dispNull(first), dispNull(last), dispNull(phone));
+//            }
             //STEP 6: Clean-up environment
             rs.close();
             stmt.close();
