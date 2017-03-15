@@ -82,7 +82,62 @@ public class CECS323_JDBCProject {
             String sql;
             sql = "SELECT au_id, au_fname, au_lname, phone FROM Authors";
             ResultSet rs = stmt.executeQuery(sql);
-
+            
+            
+        boolean done = false;
+        
+        while(!done) {
+            int menu1Choice = getIntInput("\n1) List Writing Groups"
+                    + "\n2)  List All Data For A Specific Group"
+                    + "\n3)  List All Publishers"
+                    + "\n4)  List All Data For A Specific Publisher"
+                    + "\n5)  List All Book Titles"
+                    + "\n6)  List All Data for A Specific Title"
+                    + "\n7)  Insert A Book"
+                    + "\n8)  Insert A New Publisher & Update All Books"
+                    + "\n9)  Remove A Book"
+                    + "\n10) Quit\n");
+            
+            switch(menu1Choice) {
+                case 1:
+                    //1) List Writing Groups
+                    break;
+                case 2:
+                    //2) List All Data For A Specific Group
+                    break;
+                case 3:
+                    //3) List All Publishers
+                    break;
+                case 4:
+                    //4) List All Data For A Specific Publisher
+                    break;
+                case 5:
+                    //5) List All Book Titles
+                    break;
+                case 6:
+                    //6) List All Data for A Specific Title
+                    break;
+                case 7:
+                    //7) Insert A Book
+                    break;
+                case 8:
+                    //8) Insert A New Publisher & Update All Books
+                    break;
+                case 9:
+                    //9) Remove A Book
+                    break;
+                case 10: 
+                    //10) Quit
+                    done = true;
+                    break;
+                default: System.out.println("Invalid menu selection. Please try again");
+            }
+        }
+        
+    }
+            
+            
+  
             //STEP 5: Extract data from result set
             System.out.printf(displayFormat, "ID", "First Name", "Last Name", "Phone #");
             while (rs.next()) {
