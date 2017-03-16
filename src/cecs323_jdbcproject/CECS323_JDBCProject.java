@@ -88,22 +88,15 @@ public class CECS323_JDBCProject {
         
         while(!done) {
             
-            System.out.print("\n1) List Writing Groups"
-                    + "\n2)  List All Data For A Specific Group"
-                    + "\n3)  List All Publishers"
-                    + "\n4)  List All Data For A Specific Publisher"
-                    + "\n5)  List All Book Titles"
-                    + "\n6)  List All Data for A Specific Title"
-                    + "\n7)  Insert A Book"
-                    + "\n8)  Insert A New Publisher & Update All Books"
-                    + "\n9)  Remove A Book"
-                    + "\n10) Quit\n");
+           methods.mainMenu();
             
             int userInput = CheckInput.checkIntRange(1, 10);
             
             switch(userInput) {
                 case 1:
                     //1) List Writing Groups
+                    
+                    
                     break;
                 case 2:
                     //2) List All Data For A Specific Group

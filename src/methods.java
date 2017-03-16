@@ -59,7 +59,43 @@ public class methods {
     public void listDataGroup(){
         //list all the data of a specific group
         
+    //SELECT
+    /*String selectStr = "SELECT " + targetAttr + " FROM " + DB_NAME + "." + table +
+            "WHERE " + whereAttr + "="*/
+    
+    //LIST ITEMS
+    String selectStr = "SELECT " + targetAttr + " FROM " + DBNAME + "." + table;
+    
+    //LIST DATA
+    String selectInstStr = "SELECT * FROM " + DBNAME + "." + table +
+            " WHERE " + targetAttr + "=" + instance;
+    
+    //ADD BOOK
+    String addBookStr = "INSERT INTO " + DBNAME + ".BOOKS VALUES (?,?,?,?,?)";
+    
+    //REMOVE BOOK
+    String removeBook = "DELETE FROM " + DBNAME + "." + table +
+            " WHERE " + pkAttr + "=" + primaryKey;
+    
+    //ADD PUBLISHER
+    String addPubStr = "INSERT INTO " + DBNAME + ".PUBLISHERS VALUES (?,?,?,?)";
+    
+    //UPDATE PUBLISHER
+    String updateStr = "UPDATE " + DBNAME + ".BOOKS SET publisherName=" +
+            newPublisher + " WHERE publisherName=" + oldPublisher;
+    
+    
+    public void listGroups();
+    
+    public void listGroupData(WritingGroup group);
+    
+    public void listPublishers();
+    
+    public void listPublisherData(Publisher pub);
+    
+    public void listBooks();
         
+<<<<<<< HEAD
     }
     
     
@@ -167,4 +203,13 @@ public class methods {
     }
     
     
+=======
+    public void listBookData(Book title);
+    
+    public void addBook();
+    
+    public void addPublisher();
+    
+    public Book removeBook();
+>>>>>>> origin/master
 }
