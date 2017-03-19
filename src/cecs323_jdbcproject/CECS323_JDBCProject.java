@@ -18,28 +18,9 @@ public class CECS323_JDBCProject {
     static String USER;
     static String PASS;
     static String DBNAME;
-    
-    /*
-    This is the specification for the printout that I'm doing:
-    each % denotes the start of a new field.
-    The - denotes left justification.
-    The number indicates how wide to make the field.
-    The "s" denotes that it's a string.  All of our output in this test are
-    strings, but that won't always be the case.
-    */
-    //Display for Writing Groups (varchar(20), varchar(30), date(year only), varchar(20))
-    static final String groupDisplayFormat="%-25s%-35s%-9s%-25s\n";
-    
-    //Display for Publishers (varchar(30), varchar(20), varchar(10), varchar(30))
-    static final String pubDisplayFormat="%-35s%-25s%-15s%-35s\n";
-    
-    //Display for Books (including Writing Group and Publisher info)
-    //()
-    static final String bookDisplayFormat="%-5s%-15s%-15s%-15s\n";
-    // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
-    static String DB_URL = "jdbc:derby://localhost:1527/";
-//            + "testdb;user=";
+    static String DB_URL = "jdbc:derby://localhost:1527/test;user=test;password=test";
+    static Scanner in = new Scanner(System.in);
 /**
  * Takes the input string and outputs "N/A" if the string is empty or null.
  * @param input The string to be mapped.
@@ -54,21 +35,12 @@ public class CECS323_JDBCProject {
     }
 
     public static void main(String[] args) {
-        //Prompt the user for the database name, and the credentials.
-        //If your database has no credentials, you can update this code to
-        //remove that from the connection string.
-        Scanner in = new Scanner(System.in);
-        System.out.print("Name of the database (not the user account): ");
-        DBNAME = in.nextLine();
-        System.out.print("Database user name: ");
-        USER = in.nextLine();
-        System.out.print("Database password: ");
-        PASS = in.nextLine();
-        //Constructing the database URL connection string
-        DB_URL = DB_URL + DBNAME + ";user="+ USER + ";password=" + PASS;
+        
         Connection conn = null; //initialize the connection
-        Statement stmt = null;  //initialize the statement that we're using
+        PreparedStatement stmt = null;  //initialize the statement that we're using
+        
         try {
+            
             //STEP 2: Register JDBC driver
             Class.forName("org.apache.derby.jdbc.ClientDriver");
 
@@ -77,102 +49,241 @@ public class CECS323_JDBCProject {
             conn = DriverManager.getConnection(DB_URL);
 
             //STEP 4: Execute a query
-            System.out.println("Creating statement...");
-            stmt = conn.createStatement();
-            String sql;
-            sql = "SELECT au_id, au_fname, au_lname, phone FROM Authors";
-            ResultSet rs = stmt.executeQuery(sql);
+            
             
             
         boolean done = false;
         
         while(!done) {
             
-           methods.mainMenu();
+           mainMenu();
             
             int userInput = CheckInput.checkIntRange(1, 10);
             
             switch(userInput) {
                 case 1:
                     //1) List Writing Groups
-                    
-                    
+                    listResults(conn, stmt, "GROUPNAME", "WRITINGGROUPS");
                     break;
+                    
                 case 2:
                     //2) List All Data For A Specific Group
+                    System.out.println("Enter the group name: ");
+                    String group = in.nextLine();
+                    listData(conn, stmt, "WRITINGGROUPS", "GROUPNAME", group);
                     break;
+                    
                 case 3:
                     //3) List All Publishers
+                    listResults(conn, stmt, "PUBLISHERNAME", "PUBLISHERS");
                     break;
+                    
                 case 4:
                     //4) List All Data For A Specific Publisher
+                    System.out.println("Enter the publisher name: ");
+                    String pub = in.nextLine();
+                    listData(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", pub);
                     break;
+                    
                 case 5:
                     //5) List All Book Titles
+                    listResults(conn, stmt, "BOOKTITLE", "BOOKS");
                     break;
+                    
                 case 6:
                     //6) List All Data for A Specific Title
+                    System.out.println("Enter the book title: ");
+                    String book = in.nextLine();
+                    listData(conn, stmt, "BOOKS", "BOOKTITLE", book);
                     break;
+                    
                 case 7:
                     //7) Insert A Book
+                    String[] column = {"group name", "book title", "publisher", 
+                    "year published", "number of pages"};
+                    String[] bookInfo = new String[5];
+                    
+                    for(int i = 0; i < 5; i++) {
+                        
+                        System.out.println("Enter " + column[i]);
+                        bookInfo[i] = in.nextLine();
+                    }
                     break;
+                    
                 case 8:
                     //8) Insert A New Publisher & Update All Books
                     break;
+                    
                 case 9:
                     //9) Remove A Book
+                    System.out.println("Enter book title: ");
+                    String removeTitle = in.nextLine();
+                    removeBook(conn, stmt, removeTitle);
                     break;
+                    
                 case 10: 
                     //10) Quit
                     done = true;
                     break;
-                default: System.out.println("Invalid menu selection. Please try again");
+                    
+                default: 
+                    System.out.println("Invalid menu selection. Please try again");
+                    break;
             }
-        }
-        
-    }
-            
-            
-  
-            //STEP 5: Extract data from result set
-//            System.out.printf(displayFormat, "ID", "First Name", "Last Name", "Phone #");
-//            while (rs.next()) {
-//                //Retrieve by column name
-//                String id = rs.getString("au_id");
-//                String phone = rs.getString("phone");
-//                String first = rs.getString("au_fname");
-//                String last = rs.getString("au_lname");
-//
-//                //Display values
-//                System.out.printf(displayFormat,
-//                        dispNull(id), dispNull(first), dispNull(last), dispNull(phone));
-//            }
+        }            
             //STEP 6: Clean-up environment
-            rs.close();
             stmt.close();
             conn.close();
-        } catch (SQLException se) {
+        } 
+        catch (SQLException se) {
             //Handle errors for JDBC
             se.printStackTrace();
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             //Handle errors for Class.forName
             e.printStackTrace();
-        } finally {
+        } 
+        finally {
             //finally block used to close resources
             try {
                 if (stmt != null) {
                     stmt.close();
                 }
-            } catch (SQLException se2) {
-            }// nothing we can do
+            } 
+            catch (SQLException se2) {}// nothing we can do
+            
             try {
                 if (conn != null) {
                     conn.close();
                 }
-            } catch (SQLException se) {
+            } 
+            catch (SQLException se) {
                 se.printStackTrace();
             }//end finally try
         }//end try
+        
         System.out.println("Goodbye!");
     }//end main
+
+    public static void mainMenu()
+    {
+        System.out.print("\n1)  List Writing Groups"
+                    + "\n2)  List All Data For A Specific Group"
+                    + "\n3)  List All Publishers"
+                    + "\n4)  List All Data For A Specific Publisher"
+                    + "\n5)  List All Book Titles"
+                    + "\n6)  List All Data for A Specific Title"
+                    + "\n7)  Insert A Book"
+                    + "\n8)  Insert A New Publisher & Update All Books"
+                    + "\n9)  Remove A Book"
+                    + "\n10) Quit\n");
+    }
+    
+    //LIST RESULTS
+    public static void listResults(Connection conn, PreparedStatement stmt, String attr, String table)
+    {
+        //list all writing groups in the database
+        
+        try {
+
+            String sql = "SELECT " + attr + " FROM " + table;
+            stmt = conn.prepareStatement(sql);
+              
+            ResultSet rs = stmt.executeQuery();
+            
+            ResultSetMetaData rsmd = rs.getMetaData();
+            
+            int numcols = rsmd.getColumnCount();
+            
+            while(rs.next()){
+                for(int i = 1; i <= numcols; i++){
+                    //System.out.format("%" + padding +  "s", rs.getString(i));
+                    System.out.println(rs.getString(i));
+                }
+            }// end of while loop 
+            
+            rs.close();
+            stmt.close();
+        } catch (SQLException ex) {
+            //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    //LIST DATA
+    public static void listData(Connection conn, PreparedStatement stmt, String table, String attr, String target)
+    {
+        //list all writing groups in the database
+        
+        try {
+//            String sql = "SELECT groupName FROM WRITINGGROUPS";        
+//            stmt = conn.prepareStatement(sql);
+
+            String sql = "SELECT * FROM " + table + " WHERE " + attr + "=?";
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setString(1, target);
+              
+            ResultSet rs = stmt.executeQuery();
+            
+            ResultSetMetaData rsmd = rs.getMetaData();
+            
+            int numcols = rsmd.getColumnCount();
+            
+            while(rs.next()){
+                for(int i = 1; i <= numcols; i++){
+                    //System.out.format("%" + padding +  "s", rs.getString(i));
+                    System.out.println(rs.getString(i));
+                }
+            }// end of while loop 
+            
+            rs.close();
+            stmt.close();
+        } catch (SQLException ex) {
+            //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void insertBook(Connection conn, PreparedStatement stmt, String[] bookInfo) {
+    
+        try {
+            
+            String sql = "INSERT INTO BOOKS(groupName, bookTitle, publisherName, yearPublished, numberPages)"
+                    + "VALUES(?, ?, ?, ?, ?)";
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setString(1, bookInfo[0]);
+            stmt.setString(2, bookInfo[1]);
+            stmt.setString(3, bookInfo[2]);
+            stmt.setString(4, "1/1/"+bookInfo[3]);
+            stmt.setInt(5, Integer.parseInt(bookInfo[4]));
+            
+            stmt.executeUpdate();
+            
+            System.out.println(bookInfo[1] + " has been add to table");
+            
+            stmt.close();
+        } catch (SQLException ex) {
+            //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void removeBook(Connection conn, PreparedStatement stmt, String remove) {
+        
+        try {
+            
+            String sql = "DELETE FROM BOOKS WHERE BOOKTITLE=?";
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setString(1, remove);
+            
+            stmt.executeUpdate();
+            
+            System.out.println(remove + " has been deleted from table");
+            
+            stmt.close();
+        } catch (SQLException ex) {
+            //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }//end FirstExample}
