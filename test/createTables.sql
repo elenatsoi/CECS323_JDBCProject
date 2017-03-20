@@ -29,12 +29,12 @@ CREATE TABLE PUBLISHERS(
 );
 
 CREATE TABLE BOOKS(
-    groupName VARCHAR(20),
+    groupName VARCHAR(20) NOT NULL,
     bookTitle VARCHAR(50) NOT NULL,
-    publisherName VARCHAR(30),
+    publisherName VARCHAR(30) NOT NULL,
     yearPublished DATE,
     numberPages INT,
-    PRIMARY KEY (groupName, bookTitle),
-    CONSTRAINT fk_writinggroup FOREIGN KEY (groupName)
-    REFERENCES WRITINGGROUP(groupName)
+    CONSTRAINT pk_book PRIMARY KEY (groupName, bookTitle),
+    CONSTRAINT fk_writinggroup FOREIGN KEY (groupName) REFERENCES WRITINGGROUPS(groupName),
+    CONSTRAINT fk_publisher FOREIGN KEY (publisherName) REFERENCES PUBLISHERS(publisherName)
 );

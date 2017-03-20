@@ -6,6 +6,9 @@
 package cecs323_jdbcproject;
 
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -19,7 +22,7 @@ public class CECS323_JDBCProject {
     static String PASS;
     static String DBNAME;
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
-    static String DB_URL = "jdbc:derby://localhost:1527/test;user=test;password=test";
+    static String DB_URL = "jdbc:derby://localhost:1527/test1;user=test;password=test";
     static Scanner in = new Scanner(System.in);
 /**
  * Takes the input string and outputs "N/A" if the string is empty or null.
@@ -99,19 +102,39 @@ public class CECS323_JDBCProject {
                     
                 case 7:
                     //7) Insert A Book
-                    String[] column = {"group name", "book title", "publisher", 
+                    String[] bColumn = {"group name", "book title", "publisher", 
                     "year published", "number of pages"};
                     String[] bookInfo = new String[5];
                     
-                    for(int i = 0; i < 5; i++) {
+                    for(int i = 0; i < bookInfo.length; i++) {
                         
-                        System.out.println("Enter " + column[i]);
+                        System.out.println("Enter " + bColumn[i] + ": ");
                         bookInfo[i] = in.nextLine();
                     }
+                    
+                    insertBook(conn, stmt, bookInfo);
+                    
                     break;
                     
                 case 8:
                     //8) Insert A New Publisher & Update All Books
+                    
+                    String[] pubInfo = new String[4];
+                    
+                    String[] pColumn = {"name", "address", "phone", "email"};
+                    
+                    for(int i = 0; i < pubInfo.length; i++) {
+                        
+                        System.out.println("Enter new publisher's " + pColumn[i] + ": ");
+                        pubInfo[i] = in.nextLine();
+                    }
+                    
+                    addPublisher(conn, stmt, pubInfo);
+                    
+                    System.out.println("Enter old publisher name: ");
+                    String oldPub = in.nextLine();
+                    
+                    updatePublisher(conn, stmt, pubInfo[0], oldPub);
                     break;
                     
                 case 9:
@@ -204,7 +227,8 @@ public class CECS323_JDBCProject {
             
             rs.close();
             stmt.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -238,33 +262,88 @@ public class CECS323_JDBCProject {
             
             rs.close();
             stmt.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     public static void insertBook(Connection conn, PreparedStatement stmt, String[] bookInfo) {
     
+        System.out.println("TestInsert - insertBook");
+        java.sql.Date converted = getSQLDate(Integer.parseInt(bookInfo[3]));
+        
+        //checkGroup(conn, stmt, bookInfo[0]);
+        checkFK(conn, "WRITINGGROUPS", "GROUPNAME", bookInfo[0]);
+        checkFK(conn, "PUBLISHERS", "PUBLISHERNAME", bookInfo[2]);
+        
         try {
             
-            String sql = "INSERT INTO BOOKS(groupName, bookTitle, publisherName, yearPublished, numberPages)"
-                    + "VALUES(?, ?, ?, ?, ?)";
+            System.out.println("TestInsert - try");
+            
+            String sql = "INSERT INTO "
+                    + "BOOKS(groupName, bookTitle, publisherName, yearPublished, numberPages) "
+                    + "VALUES((SELECT groupName FROM WRITINGGROUPS WHERE groupName=?), "
+                    + "?, (SELECT publisherName FROM PUBLISHERS WHERE publisherName=?), "
+                    + "?, ?)";
+            System.out.println("TestInsert - sql");
+            
             stmt = conn.prepareStatement(sql);
+            System.out.println("TestInsert - stmt");
             
             stmt.setString(1, bookInfo[0]);
             stmt.setString(2, bookInfo[1]);
             stmt.setString(3, bookInfo[2]);
-            stmt.setString(4, "1/1/"+bookInfo[3]);
+            stmt.setDate(4, converted);
             stmt.setInt(5, Integer.parseInt(bookInfo[4]));
+            System.out.println("TestInsert - setString");
             
             stmt.executeUpdate();
             
-            System.out.println(bookInfo[1] + " has been add to table");
+            System.out.println(bookInfo[1] + " has been inserted into the BOOKS table");
             
             stmt.close();
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) {
             //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public static void addPublisher(Connection conn, PreparedStatement stmt, String[] pubInfo) {
+        
+        try {
+            
+            String sql = "INSERT INTO PUBLISHERS "
+                    + "VALUES(?, ?, ?, ?)";
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setString(1, pubInfo[0]);
+            stmt.setString(2, pubInfo[1]);
+            stmt.setString(3, pubInfo[2]);
+            stmt.setString(4, pubInfo[3]);
+            
+            stmt.executeUpdate();
+            
+            System.out.println(pubInfo[0] + " has been inserted into PUBLISHERS table");
+        }
+        catch (SQLException ex) {}
+    }
+    
+    public static void updatePublisher(Connection conn, PreparedStatement stmt, String newPub, String oldPub) {
+        
+        try {
+            
+            String sql = "UPDATE BOOKS SET publisherName=? WHERE publisherName=?";
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setString(1, newPub);
+            stmt.setString(2, oldPub);
+            
+            stmt.executeUpdate();
+            
+            System.out.println(oldPub + " has been updated to " + newPub + " in BOOKS table");
+        }
+        catch (SQLException ex) {}
     }
     
     public static void removeBook(Connection conn, PreparedStatement stmt, String remove) {
@@ -278,12 +357,64 @@ public class CECS323_JDBCProject {
             
             stmt.executeUpdate();
             
-            System.out.println(remove + " has been deleted from table");
+            System.out.println(remove + " has been removed from the BOOKS table");
             
             stmt.close();
         } catch (SQLException ex) {
             //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public static java.sql.Date getSQLDate(int year) {
+        
+        java.util.Date temp = new java.util.Date(year, 1, 1);
+        return new java.sql.Date(temp.getTime());
+    }
+    
+    public static void checkGroup(Connection conn, String grp) {
+        
+        PreparedStatement stmt = null;
+        
+        try {
+            
+            String sql = "IF NOT EXISTS "
+                    + "(SELECT * FROM WRITINGGROUPS WHERE GROUPNAME =?) "
+                    + "INSERT INTO WRITINGGROUPS(GROUPNAME) VALUES(?)";
+            stmt = conn.prepareStatement(sql);
+            
+            stmt.setString(1, grp);
+            stmt.setString(2, grp);
+                        
+            stmt.execute();
+            
+            stmt.close(); 
+        }
+        catch (SQLException ex) {}
+    }
+    
+    public static void checkFK(Connection conn, String table, String attr, String val) {
+        
+        PreparedStatement stmt = null;
+        try {
+            
+            System.out.println("CheckFK - try");
+            String sql = "IF NOT EXISTS "
+                    + "(SELECT 1 FROM " + table + " WHERE " + attr + " =?) "
+                    + "BEGIN INSERT INTO " + table + "(" + attr + ") VALUES(?) END;";
+            System.out.println("CheckFK - sql");
+            stmt = conn.prepareStatement(sql);
+            System.out.println("CheckFK - stmt");
+            
+            stmt.setString(1, val);
+            stmt.setString(2, val);
+            System.out.println("CheckFK - setString");
+            stmt.execute();
+            System.out.println("CheckFK - execute");
+            
+            stmt.close(); 
+            System.out.println("CheckFK - close");
+        }
+        catch (SQLException ex) {}
     }
 
 }//end FirstExample}
