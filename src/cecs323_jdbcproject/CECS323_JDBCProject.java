@@ -296,30 +296,29 @@ public class CECS323_JDBCProject {
 ////            String sql = "SELECT groupName FROM WRITINGGROUPS";        
 ////            stmt = conn.prepareStatement(sql);
 //
-//            String sql = "SELECT * FROM " + table1 + " WHERE " + attr1 + "=? "
-//                    + "NATURAL JOIN (SELECT * FROM " + table2 + " WHERE " + attr2 + "=? "
-//                    + "NATURAL JOIN " + table3 + " WHERE " + attr3 + "=?)";
+//            String sql = "SELECT * FROM " + table1 + " NATURAL JOIN " +table2 + 
+//                    " NATURAL JOIN " + table3 + " WHERE " + attr1 + "=? AND "
+//                    + attr2 + "=?)";
 //            stmt = conn.prepareStatement(sql);
 //            
 //            stmt.setString(1, target1);
 //            stmt.setString(2, target2);
-//            stmt.setString(3, target3);
 //              
 //            ResultSet rs = stmt.executeQuery();
 //            
-//            if (checkFK(conn, stmt, table1, attr1, target1)) {
+//            if (checkFK(conn, stmt, table1, attr1, target1) && 
+//                    checkFK(conn, stmt, table2, attr2, target2)) {
 //                
 //                dispResults(rs);
-//            }
-//            else {
-//                
-//                System.out.println(target1 + " does not exist in " + table1 + " table");
 //            }
 //
 //            rs.close();
 //            stmt.close();
 //        } 
-//        catch (SQLException ex) {}
+//        catch (SQLException ex) {
+//        
+//            System.out.println(target1 + " does not exist in " + table1 + " table");
+//        }
 //    }
     
     //INSERT BOOK
