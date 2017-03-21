@@ -6,9 +6,7 @@
 package cecs323_jdbcproject;
 
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Scanner;
 
 /**
@@ -24,18 +22,6 @@ public class CECS323_JDBCProject {
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
     static String DB_URL = "jdbc:derby://localhost:1527/test1;user=test;password=test";
     static Scanner in = new Scanner(System.in);
-/**
- * Takes the input string and outputs "N/A" if the string is empty or null.
- * @param input The string to be mapped.
- * @return  Either the input string or "N/A" as appropriate.
- */
-    public static String dispNull (String input) {
-        //because of short circuiting, if it's null, it never checks the length.
-        if (input == null || input.length() == 0)
-            return "N/A";
-        else
-            return input;
-    }
 
     public static void main(String[] args) {
         
@@ -73,6 +59,7 @@ public class CECS323_JDBCProject {
                     //2) List All Data For A Specific Group
                     System.out.println("Enter the group name: ");
                     String group = in.nextLine();
+                    
                     listData(conn, stmt, "WRITINGGROUPS", "GROUPNAME", group);
                     break;
                     
@@ -103,15 +90,22 @@ public class CECS323_JDBCProject {
                     
                 case 7:
                     //7) Insert A Book
-                    String[] bColumn = {"group name", "book title", "publisher", 
-                    "year published", "number of pages"};
                     String[] bookInfo = new String[5];
                     
-                    for(int i = 0; i < bookInfo.length; i++) {
-                        
-                        System.out.println("Enter " + bColumn[i] + ": ");
-                        bookInfo[i] = in.nextLine();
-                    }
+                    System.out.println("Enter group name: ");
+                    bookInfo[0] = in.nextLine();
+                    
+                    System.out.println("Enter book title: ");
+                    bookInfo[1] = in.nextLine();
+                    
+                    System.out.println("Enter publisher name: ");
+                    bookInfo[2] = in.nextLine();
+                    
+                    System.out.println("Enter year published: ");
+                    bookInfo[3] = checkInt(1, Calendar.getInstance().get(Calendar.YEAR));
+                    
+                    System.out.println("Enter number of pages: ");
+                    bookInfo[4] = checkInt(1);
                     
                     //checkGroup(conn, stmt, table, attr, val);
                     checkFK(conn, stmt, "WRITINGGROUPS", "GROUPNAME", bookInfo[0]);
@@ -133,10 +127,15 @@ public class CECS323_JDBCProject {
                         pubInfo[i] = in.nextLine();
                     }
                     
-                    addPublisher(conn, stmt, pubInfo);
-                    
                     System.out.println("Enter old publisher name: ");
                     String oldPub = in.nextLine();
+                    
+                    if (!checkFK(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", oldPub)) {
+                        
+                        break;
+                    }
+                    
+                    addPublisher(conn, stmt, pubInfo);
                     
                     updatePublisher(conn, stmt, pubInfo[0], oldPub);
                     
@@ -220,17 +219,8 @@ public class CECS323_JDBCProject {
             stmt = conn.prepareStatement(sql);
               
             ResultSet rs = stmt.executeQuery();
-            
-            ResultSetMetaData rsmd = rs.getMetaData();
-            
-            int numcols = rsmd.getColumnCount();
-            
-            while(rs.next()){
-                for(int i = 1; i <= numcols; i++){
-                    //System.out.format("%" + padding +  "s", rs.getString(i));
-                    System.out.println(rs.getString(i));
-                }
-            }// end of while loop 
+                        
+            dispResults(rs);
             
             rs.close();
             stmt.close();
@@ -256,29 +246,20 @@ public class CECS323_JDBCProject {
               
             ResultSet rs = stmt.executeQuery();
             
-            ResultSetMetaData rsmd = rs.getMetaData();
-            
-            int numcols = rsmd.getColumnCount();
-            
-            while(rs.next()){
-                for(int i = 1; i <= numcols; i++){
-                    //System.out.format("%" + padding +  "s", rs.getString(i));
-                    System.out.println(rs.getString(i));
-                }
-            }// end of while loop 
-            
+            if (checkFK(conn, stmt, table, attr, target)) {
+                
+                dispResults(rs);
+            }
+
             rs.close();
             stmt.close();
         } 
-        catch (SQLException ex) {
-            //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
-        }
+        catch (SQLException ex) {}
     }
     
     //INSERT BOOK
     public static void insertBook(Connection conn, PreparedStatement stmt, String[] bookInfo) {
     
-        System.out.println("TestInsert - insertBook");
         java.sql.Date converted = getSQLDate(Integer.parseInt(bookInfo[3]));
         
         try {
@@ -312,12 +293,19 @@ public class CECS323_JDBCProject {
     //GET SQL DATE
     public static java.sql.Date getSQLDate(int year) {
         
-        java.util.Date temp = new java.util.Date(year, 1, 1);
-        return new java.sql.Date(temp.getTime());
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, 1);
+        cal.set(Calendar.DATE, 1);
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        
+        return new java.sql.Date(cal.getTimeInMillis());
     }// end getSQLDate
     
     //CHECK FOREIGN KEY
-    public static void checkFK(Connection conn, PreparedStatement stmt, String table, String attr, String val) {
+    public static boolean checkFK(Connection conn, PreparedStatement stmt, String table, String attr, String val) {
         
         try {
             String sql = "SELECT * FROM " + table + " WHERE " + attr + "=?";
@@ -331,11 +319,15 @@ public class CECS323_JDBCProject {
             if (!rs.next()) {
                 
                 System.out.println(val + " does not exist in the " + table + " table");
+                return false;
             }
-            
+ 
+            rs.close();
             stmt.close(); 
         }
         catch (SQLException ex) {}
+        
+        return true;
     }// end checkFK
     
     //ADD PUBLISHER
@@ -382,19 +374,127 @@ public class CECS323_JDBCProject {
         
         try {
             
-            String sql = "DELETE FROM " + table + " WHERE " + attr + "=?";
-            stmt = conn.prepareStatement(sql);
-            
-            stmt.setString(1, remove);
-            
-            stmt.executeUpdate();
-            
-            System.out.println(remove + " has been removed from the " + table + " table");
-            
-            stmt.close();
-        } catch (SQLException ex) {
-            //Logger.getLogger(getName()).log(Level.SEVERE, null, ex);
-        }
+            if (checkFK(conn, stmt, table, attr, remove)) {
+                
+                String sql = "DELETE FROM " + table + " WHERE " + attr + "=?";
+                
+                stmt = conn.prepareStatement(sql);
+
+                stmt.setString(1, remove);
+
+                stmt.executeUpdate();
+
+                System.out.println(remove + " has been removed from the " + table + " table");
+                
+                stmt.close();
+            }         
+        } catch (SQLException ex) {}
     }// end removeRec
+
+    //DISPLAY RESULTS
+    public static void dispResults(ResultSet rs) {
+        
+        try {
+            
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int numcols = rsmd.getColumnCount();
+            
+            System.out.println();
+            
+            while (rs.next()) {
+                for(int i = 1; i <= numcols; i++) {
+                    
+                    if (numcols > 1) {
+                        
+                        System.out.print(rsmd.getColumnName(i) + ": ");
+                    }
+                                        
+                    System.out.print(rs.getString(i));
+                    System.out.println();
+                }
+            }
+        }
+        catch (SQLException ex) {}
+    }// end dispResults
+    
+    //CHECK INT LOW
+    public static String checkInt(int low) {
+        
+        boolean valid = false;
+        int input = 0;
+        
+        while (!valid) {
+            
+            if (in.hasNextInt()) {
+                
+                input = in.nextInt();
+                
+                if (input >= low) {
+                    
+                    valid = true;
+                } 
+                else {
+                    
+                    System.out.println("Invalid number of pages entered."
+                        + "\nEnter valid number of pages: ");
+                }
+            }
+            else {
+                
+                in.next();
+                System.out.println("Invalid number of pages entered."
+                        + "\nEnter valid number of pages: ");
+            }
+        }
+        
+        return Integer.toString(input);
+    }
+    
+    //CHECK INT LOW - HIGH
+    public static String checkInt(int low, int high) {
+        
+        boolean valid = false;
+        int input = 0;
+        
+        while (!valid) {
+            
+            if (in.hasNextInt()) {
+                
+                input = in.nextInt();
+                
+                if (input >= low && input <= high) {
+                    
+                    valid = true;
+                }
+                else {
+                    
+                    System.out.println("Invalid year entered. "
+                        + "\nEnter valid year: ");
+                }
+            }
+            else {
+                
+                in.next();
+                System.out.println("Invalid year entered. "
+                        + "\nEnter valid year: ");
+            }
+        }
+        
+        return Integer.toString(input);
+    }
+    
+    /**
+    * Takes the input string and outputs "N/A" if the string is empty or null.
+    * @param input The string to be mapped.
+    * @return  Either the input string or "N/A" as appropriate.
+    */
+    //DISPLAY NULL
+    public static String dispNull (String input) {
+        //because of short circuiting, if it's null, it never checks the length.
+        if (input == null || input.length() == 0)
+            return "N/A";
+        else
+            return input;
+    }// end dispNull
     
 }//end FirstExample}
