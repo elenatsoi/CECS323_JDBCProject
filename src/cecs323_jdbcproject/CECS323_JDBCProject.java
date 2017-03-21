@@ -10,8 +10,11 @@ import java.util.Calendar;
 import java.util.Scanner;
 
 /**
- *
- * @author Elena Tsoi-A-Sue and Dania Wareh (tweaking from Mimi Opkins and Dave Brown)
+ * JDBC Project
+ * CECS 323
+ * 03-21-2017
+ * @author Elena Tsoi-A-Sue and Dania Wareh 
+ * (tweaking from Mimi Opkins and Dave Brown)
  */
 public class CECS323_JDBCProject {
 
@@ -20,13 +23,15 @@ public class CECS323_JDBCProject {
     static String PASS;
     static String DBNAME;
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
-    static String DB_URL = "jdbc:derby://localhost:1527/test1;user=test;password=test";
+    static String DB_URL = "jdbc:derby://localhost:1527/"
+            + "test2;user=test;password=test";
     static Scanner in = new Scanner(System.in);
+    static Scanner intIn = new Scanner(System.in);
 
     public static void main(String[] args) {
         
         Connection conn = null; //initialize the connection
-        PreparedStatement stmt = null;  //initialize the statement that we're using
+        PreparedStatement stmt = null;  //initialize the PreparedStatement
         
         try {
             
@@ -47,7 +52,7 @@ public class CECS323_JDBCProject {
             
            mainMenu();
             
-            int userInput = CheckInput.checkIntRange(1, 10);
+            int userInput = checkInt();
             
             switch(userInput) {
                 case 1:
@@ -83,9 +88,19 @@ public class CECS323_JDBCProject {
                 case 6:
                     //6) List All Data for A Specific Title
                     System.out.println("Enter the book title: ");
-                    String book = in.nextLine();
+                    String bookT = in.nextLine();
                     
-                    listData(conn, stmt, "BOOKS", "BOOKTITLE", book);
+                    System.out.println("Enter the group name: ");
+                    String groupN = in.nextLine();
+                    
+                    System.out.println("Enter the publisher name: ");
+                    String pubN = in.nextLine();
+                    
+                    listData(conn, stmt, "BOOKS", "BOOKTITLE", bookT);
+                    
+//                    listData(conn, stmt, "BOOKS", "BOOKTITLE", bookT,
+//                            "WRITINGGROUPS", "GROUPNAME", groupN,
+//                            "PUBLISHERS", "PUBLISHERNAME", pubN);
                     break;
                     
                 case 7:
@@ -93,23 +108,26 @@ public class CECS323_JDBCProject {
                     String[] bookInfo = new String[5];
                     
                     System.out.println("Enter group name: ");
-                    bookInfo[0] = in.nextLine();
+                    bookInfo[0] = checkString("GROUPNAME");
                     
                     System.out.println("Enter book title: ");
-                    bookInfo[1] = in.nextLine();
+                    bookInfo[1] = checkString("BOOKTITLE");
                     
                     System.out.println("Enter publisher name: ");
-                    bookInfo[2] = in.nextLine();
+                    bookInfo[2] = checkString("PUBLISHERNAME");
                     
                     System.out.println("Enter year published: ");
-                    bookInfo[3] = checkInt(1, Calendar.getInstance().get(Calendar.YEAR));
+                    bookInfo[3] = checkInt(1, 
+                            Calendar.getInstance().get(Calendar.YEAR));
                     
                     System.out.println("Enter number of pages: ");
                     bookInfo[4] = checkInt(1);
                     
                     //checkGroup(conn, stmt, table, attr, val);
-                    checkFK(conn, stmt, "WRITINGGROUPS", "GROUPNAME", bookInfo[0]);
-                    checkFK(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", bookInfo[2]);
+                    checkFK(conn, stmt, "WRITINGGROUPS", "GROUPNAME", 
+                            bookInfo[0]);
+                    checkFK(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", 
+                            bookInfo[2]);
                     
                     insertBook(conn, stmt, bookInfo);
                     break;
@@ -123,15 +141,18 @@ public class CECS323_JDBCProject {
                     
                     for(int i = 0; i < pubInfo.length; i++) {
                         
-                        System.out.println("Enter new publisher's " + pColumn[i] + ": ");
-                        pubInfo[i] = in.nextLine();
+                        System.out.println("Enter new publisher's " 
+                                + pColumn[i] + ": ");
+                        pubInfo[i] = checkString("PUBLISHERNAME");
                     }
                     
                     System.out.println("Enter old publisher name: ");
-                    String oldPub = in.nextLine();
+                    String oldPub = checkString("PUBLISHERNAME");
                     
-                    if (!checkFK(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", oldPub)) {
+                    if (!checkFK(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", 
+                            oldPub)) {
                         
+                        System.out.println("Record update failed");
                         break;
                     }
                     
@@ -139,15 +160,18 @@ public class CECS323_JDBCProject {
                     
                     updatePublisher(conn, stmt, pubInfo[0], oldPub);
                     
-                    removeRec(conn, stmt, "PUBLISHERS", "PUBLISHERNAME", oldPub);
                     break;
                     
                 case 9:
                     //9) Remove A Book
                     System.out.println("Enter book title: ");
-                    String removeTitle = in.nextLine();
+                    String removeTitle = checkString("BOOKTITLE");
                     
-                    removeRec(conn, stmt, "BOOKS", "BOOKTITLE", removeTitle);
+                    System.out.println("Enter group name: ");
+                    String removeGroup = checkString("GROUPNAME");
+                    
+                    removeBook(conn, stmt, "BOOKS", "BOOKTITLE", "GROUPNAME",
+                            removeTitle, removeGroup);
                     break;
                     
                 case 10: 
@@ -156,7 +180,8 @@ public class CECS323_JDBCProject {
                     break;
                     
                 default: 
-                    System.out.println("Invalid menu selection. Please try again");
+                    System.out.println("Invalid menu selection. Please try "
+                            + "again");
                     break;
             }
         }            
@@ -209,7 +234,8 @@ public class CECS323_JDBCProject {
     }
     
     //LIST RESULTS
-    public static void listResults(Connection conn, PreparedStatement stmt, String attr, String table)
+    public static void listResults(Connection conn, PreparedStatement stmt, 
+            String attr, String table)
     {
         //list all writing groups in the database
         
@@ -231,7 +257,8 @@ public class CECS323_JDBCProject {
     }
     
     //LIST DATA
-    public static void listData(Connection conn, PreparedStatement stmt, String table, String attr, String target)
+    public static void listData(Connection conn, PreparedStatement stmt, 
+            String table, String attr, String target)
     {
         //list all writing groups in the database
         
@@ -257,17 +284,57 @@ public class CECS323_JDBCProject {
         catch (SQLException ex) {}
     }
     
+//    //LIST DATA
+//    public static void listData(Connection conn, PreparedStatement stmt, 
+//            String table1, String attr1, String target1,
+//            String table2, String attr2, String target2,
+//            String table3, String attr3, String target3)
+//    {
+//        //list all writing groups in the database
+//        
+//        try {
+////            String sql = "SELECT groupName FROM WRITINGGROUPS";        
+////            stmt = conn.prepareStatement(sql);
+//
+//            String sql = "SELECT * FROM " + table1 + " WHERE " + attr1 + "=? "
+//                    + "NATURAL JOIN (SELECT * FROM " + table2 + " WHERE " + attr2 + "=? "
+//                    + "NATURAL JOIN " + table3 + " WHERE " + attr3 + "=?)";
+//            stmt = conn.prepareStatement(sql);
+//            
+//            stmt.setString(1, target1);
+//            stmt.setString(2, target2);
+//            stmt.setString(3, target3);
+//              
+//            ResultSet rs = stmt.executeQuery();
+//            
+//            if (checkFK(conn, stmt, table1, attr1, target1)) {
+//                
+//                dispResults(rs);
+//            }
+//            else {
+//                
+//                System.out.println(target1 + " does not exist in " + table1 + " table");
+//            }
+//
+//            rs.close();
+//            stmt.close();
+//        } 
+//        catch (SQLException ex) {}
+//    }
+    
     //INSERT BOOK
-    public static void insertBook(Connection conn, PreparedStatement stmt, String[] bookInfo) {
+    public static void insertBook(Connection conn, PreparedStatement stmt, 
+            String[] bookInfo) {
     
         java.sql.Date converted = getSQLDate(Integer.parseInt(bookInfo[3]));
         
         try {
             
             String sql = "INSERT INTO "
-                    + "BOOKS(groupName, bookTitle, publisherName, yearPublished, numberPages) "
-                    + "VALUES((SELECT groupName FROM WRITINGGROUPS WHERE groupName=?), "
-                    + "?, (SELECT publisherName FROM PUBLISHERS WHERE publisherName=?), "
+                    + "BOOKS(groupName, bookTitle, publisherName, "
+                    + "yearPublished, numberPages) VALUES((SELECT groupName "
+                    + "FROM WRITINGGROUPS WHERE groupName=?), ?, (SELECT "
+                    + "publisherName FROM PUBLISHERS WHERE publisherName=?), "
                     + "?, ?)";
             
             stmt = conn.prepareStatement(sql);
@@ -280,7 +347,8 @@ public class CECS323_JDBCProject {
             
             stmt.executeUpdate();
             
-            System.out.println(bookInfo[1] + " has been inserted into the BOOKS table");
+            System.out.println(bookInfo[1] + " has been inserted into the"
+                    + " BOOKS table");
             
             stmt.close();
         } 
@@ -305,7 +373,8 @@ public class CECS323_JDBCProject {
     }// end getSQLDate
     
     //CHECK FOREIGN KEY
-    public static boolean checkFK(Connection conn, PreparedStatement stmt, String table, String attr, String val) {
+    public static boolean checkFK(Connection conn, PreparedStatement stmt, 
+            String table, String attr, String val) {
         
         try {
             String sql = "SELECT * FROM " + table + " WHERE " + attr + "=?";
@@ -318,7 +387,8 @@ public class CECS323_JDBCProject {
             
             if (!rs.next()) {
                 
-                System.out.println(val + " does not exist in the " + table + " table");
+                System.out.println(val + " does not exist in the " + table + 
+                        " table");
                 return false;
             }
  
@@ -331,7 +401,8 @@ public class CECS323_JDBCProject {
     }// end checkFK
     
     //ADD PUBLISHER
-    public static void addPublisher(Connection conn, PreparedStatement stmt, String[] pubInfo) {
+    public static void addPublisher(Connection conn, PreparedStatement stmt, 
+            String[] pubInfo) {
         
         try {
             
@@ -346,17 +417,20 @@ public class CECS323_JDBCProject {
             
             stmt.executeUpdate();
             
-            System.out.println(pubInfo[0] + " has been inserted into PUBLISHERS table");
+            System.out.println(pubInfo[0] + " has been inserted into"
+                    + " PUBLISHERS table");
         }
         catch (SQLException ex) {}
     }// end addPublisher
     
     //UPDATE PUBLISHER
-    public static void updatePublisher(Connection conn, PreparedStatement stmt, String newPub, String oldPub) {
+    public static void updatePublisher(Connection conn, PreparedStatement stmt, 
+            String newPub, String oldPub) {
         
         try {
             
-            String sql = "UPDATE BOOKS SET publisherName=? WHERE publisherName=?";
+            String sql = "UPDATE BOOKS SET publisherName=? "
+                    + "WHERE publisherName=?";
             stmt = conn.prepareStatement(sql);
             
             stmt.setString(1, newPub);
@@ -364,32 +438,61 @@ public class CECS323_JDBCProject {
             
             stmt.executeUpdate();
             
-            System.out.println(oldPub + " has been updated to " + newPub + " in BOOKS table");
+            System.out.println(oldPub + " has been updated to " + newPub 
+                    + " in BOOKS table");
         }
         catch (SQLException ex) {}
     }// end updatePublisher
     
-    //REMOVE RECORD
-    public static void removeRec(Connection conn, PreparedStatement stmt, String table, String attr, String remove) {
+//    //REMOVE RECORD
+//    public static void removeRec(Connection conn, PreparedStatement stmt, 
+//            String table, String attr, String remove) {
+//        
+//        try {
+//            
+//            if (checkFK(conn, stmt, table, attr, remove)) {
+//                
+//                String sql = "DELETE FROM " + table + " WHERE " + attr + "=?";
+//                
+//                stmt = conn.prepareStatement(sql);
+//
+//                stmt.setString(1, remove);
+//
+//                stmt.executeUpdate();
+//
+//                System.out.println(remove + " has been removed from the " 
+//                        + table + " table");
+//                
+//                stmt.close();
+//            }         
+//        } catch (SQLException ex) {}
+//    }// end removeRec
+    
+    //REMOVE BOOK
+    public static void removeBook(Connection conn, PreparedStatement stmt, 
+            String table, String pk1, String pk2, String remove1, String remove2) {
         
         try {
             
-            if (checkFK(conn, stmt, table, attr, remove)) {
+            if (checkFK(conn, stmt, table, pk1, remove1) && checkFK(conn, stmt, table, pk2, remove2)) {
                 
-                String sql = "DELETE FROM " + table + " WHERE " + attr + "=?";
+                String sql = "DELETE FROM " + table + " WHERE (" + pk1 + "=? "
+                        + "AND " + pk2 + "=?)";
                 
                 stmt = conn.prepareStatement(sql);
 
-                stmt.setString(1, remove);
+                stmt.setString(1, remove1);
+                stmt.setString(2, remove2);
 
                 stmt.executeUpdate();
 
-                System.out.println(remove + " has been removed from the " + table + " table");
+                System.out.println(remove1 + " has been removed from the " 
+                        + table + " table");
                 
                 stmt.close();
             }         
         } catch (SQLException ex) {}
-    }// end removeRec
+    }// end removeBook
 
     //DISPLAY RESULTS
     public static void dispResults(ResultSet rs) {
@@ -417,6 +520,54 @@ public class CECS323_JDBCProject {
         catch (SQLException ex) {}
     }// end dispResults
     
+    //CHECK STRING NOT NULL
+    public static String checkString(String attr) {
+        
+        boolean valid = false;
+        String temp = "";
+        
+        while (!valid) {
+            
+            temp = in.nextLine();
+            
+            if (temp.length() >= 1) {
+                
+                valid = true;
+            }
+            else {
+                
+                System.out.println("Cannot be null.\n"
+                        + "Please enter valid " + attr + ": ");
+            }
+        }
+        
+        return temp;
+    }
+    
+    //CHECK INT
+    public static int checkInt() {
+        
+        boolean valid = false;
+        int validInt = 0;
+        
+        while (!valid) {
+            
+            if (intIn.hasNextInt()) {
+                
+                validInt = intIn.nextInt();
+                valid = true;
+            }
+            else {
+                
+                intIn.next();
+                System.out.println("Invalid input entered. "
+                        + "\nPlease enter an integer: ");
+            }
+        }
+        
+        return validInt;
+    }
+
     //CHECK INT LOW
     public static String checkInt(int low) {
         
@@ -425,9 +576,9 @@ public class CECS323_JDBCProject {
         
         while (!valid) {
             
-            if (in.hasNextInt()) {
+            if (intIn.hasNextInt()) {
                 
-                input = in.nextInt();
+                input = intIn.nextInt();
                 
                 if (input >= low) {
                     
@@ -441,7 +592,7 @@ public class CECS323_JDBCProject {
             }
             else {
                 
-                in.next();
+                intIn.next();
                 System.out.println("Invalid number of pages entered."
                         + "\nEnter valid number of pages: ");
             }
@@ -458,9 +609,9 @@ public class CECS323_JDBCProject {
         
         while (!valid) {
             
-            if (in.hasNextInt()) {
+            if (intIn.hasNextInt()) {
                 
-                input = in.nextInt();
+                input = intIn.nextInt();
                 
                 if (input >= low && input <= high) {
                     
@@ -468,15 +619,15 @@ public class CECS323_JDBCProject {
                 }
                 else {
                     
-                    System.out.println("Invalid year entered. "
-                        + "\nEnter valid year: ");
+                    System.out.println("Invalid input entered. "
+                        + "\nEnter number between " + low + " and " + high + ": ");
                 }
             }
             else {
                 
-                in.next();
-                System.out.println("Invalid year entered. "
-                        + "\nEnter valid year: ");
+                intIn.next();
+                System.out.println("Invalid input entered. "
+                        + "\nEnter number between " + low + " and " + high + ": ");
             }
         }
         
@@ -490,7 +641,7 @@ public class CECS323_JDBCProject {
     */
     //DISPLAY NULL
     public static String dispNull (String input) {
-        //because of short circuiting, if it's null, it never checks the length.
+        //because of short circuiting, if it's null, it never checks the length
         if (input == null || input.length() == 0)
             return "N/A";
         else

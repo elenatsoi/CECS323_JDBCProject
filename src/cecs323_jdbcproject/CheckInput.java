@@ -2,95 +2,122 @@ package cecs323_jdbcproject;
 
 import java.util.Scanner;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+public class CheckInput() {
 
-/**
- *
- * @author daniawareh
- */
-public class CheckInput {
+    static Scanner intIn = new Scanner(System.in);
+    static Scanner strIn = new Scanner(System.in);
+
+    //CHECK STRING NOT NULL
+    public static String checkString(String attr) {
+        
+        boolean valid = false;
+        String temp = "";
+        
+        while (!valid) {
+            
+            temp = strIn.nextLine();
+            
+            if (temp.length() >= 1) {
+                
+                valid = true;
+            }
+            else {
+                
+                System.out.println("Cannot be null.\n"
+                        + "Please enter valid " + attr + ": ");
+            }
+        }
+        
+        return temp;
+    }
     
-	/**
-	 * Checks that the value that was input is an integer.
-	 * @return the valid input.
-	 */
-	public static int checkInt() {
-		Scanner in = new Scanner(System.in);
-		int input = 0;
-		boolean valid = false;
-		while(!valid) {
-			if(in.hasNextInt()) {
-				input = in.nextInt();
-				valid = true;
-			} else {
-				in.next();
-				System.out.println("Invalid Input.");
-			}
-		}
-		return input;
-	}
-	
-	/**
-	 * Checks that the value that was input is an integer and 
-	 * within the specified range.
-	 * @param low lower bound of the range.
-	 * @param high upper bound of the range.
-	 * @return the valid input.
-	 */
-	public static int checkIntRange(int low, int high) {
-		Scanner in = new Scanner(System.in);
-		int input = 0;
-		boolean valid = false;
-		while(!valid) {
-			if(in.hasNextInt()) {
-				input = in.nextInt();
-				if(input <= high && input >=low) {
-					valid = true;
-				} else {
-					System.out.println("Invalid Input.");
-				}
-			} else {
-				in.next();
-				System.out.println("Invalid Input.");
-			}
-		}
-		return input;
-	}
-	
-	/**
-	 * Checks that the value that was input is a double.
-	 * @return the valid input.
-	 */
-	public static double checkDouble() {
-		Scanner in = new Scanner(System.in);
-		double input = 0;
-		boolean valid = false;
-		while(!valid) {
-			if(in.hasNextInt()) {
-				input = in.nextDouble();
-				valid = true;
-			} else {
-				in.next();
-				System.out.println("Invalid Input.");
-			}
-		}
-		return input;
-	}
-	
-	/**
-	 * Takes in a string from the user.
-	 * @return the String input.
-	 */
-	public static String getString() {
-		Scanner in = new Scanner(System.in);
-		String input = in.nextLine();
-		return input;
-	}
+    //CHECK INT
+    public static int checkInt() {
+        
+        boolean valid = false;
+        int validInt = 0;
+        
+        while (!valid) {
+            
+            if (intIn.hasNextInt()) {
+                
+                validInt = in.nextInt();
+                valid = true;
+            }
+            else {
+                
+                in.next();
+                System.out.println("Invalid input entered. "
+                        + "\nPlease enter an integer: ");
+            }
+        }
+        
+        return validInt;
+    }
+
+    //CHECK INT LOW
+    public static String checkInt(int low) {
+        
+        boolean valid = false;
+        int input = 0;
+        
+        while (!valid) {
+            
+            if (in.hasNextInt()) {
+                
+                input = in.nextInt();
+                
+                if (input >= low) {
+                    
+                    valid = true;
+                } 
+                else {
+                    
+                    System.out.println("Invalid number of pages entered."
+                        + "\nEnter valid number of pages: ");
+                }
+            }
+            else {
+                
+                in.next();
+                System.out.println("Invalid number of pages entered."
+                        + "\nEnter valid number of pages: ");
+            }
+        }
+        
+        return Integer.toString(input);
+    }
     
-    
-    
+    //CHECK INT LOW - HIGH
+    public static String checkInt(int low, int high) {
+        
+        boolean valid = false;
+        int input = 0;
+        
+        while (!valid) {
+            
+            if (intIn.hasNextInt()) {
+                
+                input = in.nextInt();
+                
+                if (input >= low && input <= high) {
+                    
+                    valid = true;
+                }
+                else {
+                    
+                    System.out.println("Invalid input entered. "
+                        + "\nEnter number between " + low + " and " + high + ": ");
+                }
+            }
+            else {
+                
+                in.next();
+                System.out.println("Invalid input entered. "
+                        + "\nEnter number between " + low + " and " + high + ": ");
+            }
+        }
+        
+        return Integer.toString(input);
+    }
 }
